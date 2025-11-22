@@ -4,7 +4,6 @@
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 
-![Supports aarch64 Architecture][aarch64-shield]
 ![Supports amd64 Architecture][amd64-shield]
 
 _Komodo Periphery Server - Manages containers on remote servers_
@@ -197,7 +196,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [banner-image]: https://raw.githubusercontent.com/cgfm/Komodo-Periphery-Addon/refs/heads/main/images/banner.png
 [commits-shield]: https://img.shields.io/github/commit-activity/y/cgfm/Komodo-Periphery-Addon.svg
@@ -208,3 +206,4 @@ SOFTWARE.
 [license-shield]: https://img.shields.io/github/license/cgfm/Komodo-Periphery-Addon.svg
 [releases-shield]: https://img.shields.io/github/release/cgfm/Komodo-Periphery-Addon.svg
 [releases]: https://github.com/cgfm/Komodo-Periphery-Addon/releases
+
