@@ -1,6 +1,6 @@
 name: "Komodo Periphery"
 description: "Komodo Periphery Server - Manages containers on remote servers"
-version: "1.18.4"
+version: "2"
 slug: "komodo-periphery"
 init: false
 arch:

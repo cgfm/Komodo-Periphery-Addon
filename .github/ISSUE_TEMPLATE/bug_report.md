@@ -36,7 +36,7 @@ Please provide relevant log output from the add-on:
 
 **Environment (please complete the following information):**
 - Home Assistant Version: [e.g. 2024.8.0]
-- Add-on Version: [e.g. 1.18.4]
+- Add-on Version: [e.g. 2.0.0]
 - Architecture: [e.g. amd64, aarch64]
 - Docker Version: [if relevant]
 

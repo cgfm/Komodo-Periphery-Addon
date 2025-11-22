@@ -5,11 +5,21 @@ All notable changes to this Home Assistant Add-on will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-11-22
+
+### Changed
+- Updated add-on version to 2.0.0
+- Add-on now always uses the latest version of Komodo Periphery from upstream
+- Komodo Periphery binary is pulled from the official `ghcr.io/moghtech/komodo-periphery:latest` image at build time
+
+### Note
+This add-on automatically includes the latest stable version of Komodo Periphery. The add-on version (2.x) is independent of the underlying Komodo Periphery version to avoid confusion as the binary is always pulled fresh from the official source.
+
 ## [1.18.4] - 2025-08-09
 
 ### Added
 - Initial release of Komodo Periphery Home Assistant Add-on
-- Support for Komodo Periphery v1.18.4
+- Support for Komodo Periphery (initially v1.18.4)
 - Docker container management capabilities
 - Core connection mode for connecting to remote Komodo Core servers
 - Standalone mode with passkey authentication

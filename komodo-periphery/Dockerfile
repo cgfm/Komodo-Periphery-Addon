@@ -85,7 +85,7 @@ LABEL \
     io.hass.description="Komodo Periphery Server - Manages containers on remote servers" \
     io.hass.arch="aarch64|amd64" \
     io.hass.type="addon" \
-    io.hass.version="1.18.4" \
+    io.hass.version="2" \
     maintainer="Home Assistant Community Add-ons <hello@addons.community>" \
     org.opencontainers.image.title="Home Assistant Add-on: Komodo Periphery" \
     org.opencontainers.image.description="Komodo Periphery Server - Manages containers on remote servers" \

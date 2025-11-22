@@ -15,6 +15,8 @@ _Komodo Periphery Server - Manages containers on remote servers_
 
 This Home Assistant Add-on provides the Komodo Periphery server, which allows you to manage Docker containers on remote servers through the Komodo platform. The Periphery server acts as an agent that connects to a Komodo Core server and executes container management tasks.
 
+**Note:** This add-on automatically uses the latest stable version of Komodo Periphery from the official upstream repository. The add-on version number (2.x) is independent of the underlying Komodo Periphery version to provide clear versioning for the Home Assistant integration.
+
 ## Features
 
 - 🐳 **Docker Container Management**: Full Docker container lifecycle management
