@@ -14,20 +14,42 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     procps \
     xz-utils \
-    docker.io \
+    gnupg \
+    lsb-release \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI from official Docker repository (newer version with API 1.44+ support)
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
+    && chmod a+r /etc/apt/keyrings/docker.asc \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list \
+    && apt-get update \
+    && apt-get install -y docker-ce-cli docker-compose-plugin \
     && rm -rf /var/lib/apt/lists/*
 
 # Install s6-overlay for service management (Home Assistant Add-on standard)
-ARG S6_OVERLAY_VERSION=3.1.6.2
-RUN wget -O /tmp/s6-overlay.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" \
-    && tar -C / -Jxpf /tmp/s6-overlay.tar.xz \
-    && wget -O /tmp/s6-overlay-arch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz" \
+# Automatically fetches the latest version from GitHub
+RUN S6_OVERLAY_VERSION=$(curl -s https://api.github.com/repos/just-containers/s6-overlay/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
+    && ARCH=$(uname -m) \
+    && case "${ARCH}" in \
+        x86_64) S6_ARCH="x86_64" ;; \
+        aarch64) S6_ARCH="aarch64" ;; \
+        armv7l) S6_ARCH="armhf" ;; \
+        *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
+    esac \
+    && echo "Installing s6-overlay version ${S6_OVERLAY_VERSION} for ${S6_ARCH}" \
+    && wget -O /tmp/s6-overlay-noarch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" \
+    && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
+    && wget -O /tmp/s6-overlay-arch.tar.xz "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" \
     && tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz \
     && rm -f /tmp/s6-overlay*.tar.xz
 
 # Install bashio for Home Assistant Add-on logging and configuration
-RUN curl -J -L -o /tmp/bashio.tar.gz \
-    "https://github.com/hassio-addons/bashio/archive/v0.14.3.tar.gz" \
+# Automatically fetches the latest version from GitHub
+RUN BASHIO_VERSION=$(curl -s https://api.github.com/repos/hassio-addons/bashio/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
+    && echo "Installing bashio version ${BASHIO_VERSION}" \
+    && curl -J -L -o /tmp/bashio.tar.gz "https://github.com/hassio-addons/bashio/archive/v${BASHIO_VERSION}.tar.gz" \
     && mkdir /tmp/bashio \
     && tar zxvf /tmp/bashio.tar.gz --strip 1 -C /tmp/bashio \
     && mv /tmp/bashio/lib /usr/lib/bashio \

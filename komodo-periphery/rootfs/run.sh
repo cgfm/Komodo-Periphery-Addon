@@ -87,8 +87,26 @@ if bashio::var.is_empty "${passkey}" && bashio::var.is_empty "${core_url}"; then
     bashio::log.info "Generated random passkey for authentication: ${passkey}"
 fi
 
-# Get Home Assistant internal IP for SSL certificate
-HA_IP=$(hostname -i 2>/dev/null || ip route get 1 2>/dev/null | awk '{print $NF; exit}' || echo "127.0.0.1")
+# Get Home Assistant internal IP for SSL certificate (prefer IPv4)
+# hostname -i can return multiple IPs (IPv6 and IPv4), we need just one IPv4
+ALL_IPS=$(hostname -i 2>/dev/null || echo "")
+HA_IP=""
+for ip in ${ALL_IPS}; do
+    # Skip IPv6 addresses (contain colons)
+    if [[ ! "${ip}" =~ : ]]; then
+        HA_IP="${ip}"
+        break
+    fi
+done
+# Fallback if no IPv4 found
+if [[ -z "${HA_IP}" ]]; then
+    HA_IP=$(ip route get 1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="src") print $(i+1)}' || echo "127.0.0.1")
+fi
+# Final fallback
+if [[ -z "${HA_IP}" ]]; then
+    HA_IP="127.0.0.1"
+fi
+bashio::log.debug "Using IP address for SSL certificate: ${HA_IP}"
 
 # Configure Komodo Periphery environment variables
 export PERIPHERY_PORT="8120"
@@ -178,43 +196,81 @@ fi
 # Additional config
 export TZ="Europe/Berlin"
 
-# Generate SSL certificates if they don't exist and SSL is enabled
+# SSL Certificate handling - use /data/ssl for persistence across restarts
+SSL_DATA_DIR="/data/ssl"
+SSL_KOMODO_DIR="/etc/komodo/ssl"
+
 if [[ "${ssl_enabled}" == "true" ]]; then
-    if [[ ! -f "/etc/komodo/ssl/cert.pem" || ! -f "/etc/komodo/ssl/key.pem" ]]; then
-        bashio::log.info "Generating self-signed SSL certificates..."
-        
-        # Check if openssl is available
-        if command -v openssl >/dev/null 2>&1; then
-            openssl req -x509 -newkey rsa:4096 -keyout /etc/komodo/ssl/key.pem \
-                -out /etc/komodo/ssl/cert.pem -days 365 -nodes \
-                -subj "/C=DE/ST=State/L=City/O=Organization/OU=OrgUnit/CN=${HA_IP}" \
-                -addext "subjectAltName=IP:${HA_IP},DNS:localhost,DNS:homeassistant.local" \
-                2>/dev/null
-            
-            chmod 600 /etc/komodo/ssl/key.pem
-            chmod 644 /etc/komodo/ssl/cert.pem
-            
-            bashio::log.info "SSL certificates generated successfully"
-        else
-            bashio::log.warning "OpenSSL not available - creating dummy SSL certificates"
-            # Create dummy certificates for testing
-            echo "-----BEGIN PRIVATE KEY-----" > /etc/komodo/ssl/key.pem
-            echo "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC..." >> /etc/komodo/ssl/key.pem
-            echo "-----END PRIVATE KEY-----" >> /etc/komodo/ssl/key.pem
-            
-            echo "-----BEGIN CERTIFICATE-----" > /etc/komodo/ssl/cert.pem
-            echo "MIIDXTCCAkWgAwIBAgIJAKoK..." >> /etc/komodo/ssl/cert.pem
-            echo "-----END CERTIFICATE-----" >> /etc/komodo/ssl/cert.pem
-            
-            chmod 600 /etc/komodo/ssl/key.pem
-            chmod 644 /etc/komodo/ssl/cert.pem
-            
-            bashio::log.warning "Using dummy SSL certificates - SSL will not work properly"
-        fi
+    mkdir -p "${SSL_DATA_DIR}"
+    mkdir -p "${SSL_KOMODO_DIR}"
+
+    # Check for existing certificates in persistent storage
+    if [[ -f "${SSL_DATA_DIR}/cert.pem" && -f "${SSL_DATA_DIR}/key.pem" ]]; then
+        bashio::log.info "Using existing SSL certificates from persistent storage"
+        cp "${SSL_DATA_DIR}/cert.pem" "${SSL_KOMODO_DIR}/cert.pem"
+        cp "${SSL_DATA_DIR}/key.pem" "${SSL_KOMODO_DIR}/key.pem"
+        chmod 600 "${SSL_KOMODO_DIR}/key.pem"
+        chmod 644 "${SSL_KOMODO_DIR}/cert.pem"
     else
-        bashio::log.info "Using existing SSL certificates"
+        bashio::log.info "Generating self-signed SSL certificates..."
+
+        # Check if openssl is available
+        if ! command -v openssl >/dev/null 2>&1; then
+            bashio::log.error "OpenSSL is not installed - cannot generate SSL certificates"
+            bashio::log.warning "Disabling SSL and continuing without encryption"
+            ssl_enabled="false"
+            export PERIPHERY_SSL_ENABLED="false"
+        else
+            # Generate certificates with proper error handling
+            if openssl req -x509 -newkey rsa:4096 \
+                -keyout "${SSL_DATA_DIR}/key.pem" \
+                -out "${SSL_DATA_DIR}/cert.pem" \
+                -days 365 -nodes \
+                -subj "/C=DE/ST=State/L=City/O=HomeAssistant/OU=Komodo/CN=${HA_IP}" \
+                -addext "subjectAltName=IP:${HA_IP},IP:127.0.0.1,DNS:localhost,DNS:homeassistant.local" 2>&1; then
+
+                # Verify certificates were created
+                if [[ -f "${SSL_DATA_DIR}/cert.pem" && -f "${SSL_DATA_DIR}/key.pem" ]]; then
+                    bashio::log.info "SSL certificates generated successfully"
+
+                    # Copy to komodo directory
+                    cp "${SSL_DATA_DIR}/cert.pem" "${SSL_KOMODO_DIR}/cert.pem"
+                    cp "${SSL_DATA_DIR}/key.pem" "${SSL_KOMODO_DIR}/key.pem"
+                    chmod 600 "${SSL_KOMODO_DIR}/key.pem"
+                    chmod 644 "${SSL_KOMODO_DIR}/cert.pem"
+                    chmod 600 "${SSL_DATA_DIR}/key.pem"
+                    chmod 644 "${SSL_DATA_DIR}/cert.pem"
+                else
+                    bashio::log.error "SSL certificate files were not created"
+                    bashio::log.warning "Disabling SSL and continuing without encryption"
+                    ssl_enabled="false"
+                    export PERIPHERY_SSL_ENABLED="false"
+                fi
+            else
+                bashio::log.error "Failed to generate SSL certificates"
+                bashio::log.warning "Disabling SSL and continuing without encryption"
+                ssl_enabled="false"
+                export PERIPHERY_SSL_ENABLED="false"
+            fi
+        fi
+    fi
+
+    # Final verification before starting with SSL
+    if [[ "${ssl_enabled}" == "true" ]]; then
+        if [[ ! -f "${SSL_KOMODO_DIR}/cert.pem" || ! -f "${SSL_KOMODO_DIR}/key.pem" ]]; then
+            bashio::log.error "SSL certificates not found in ${SSL_KOMODO_DIR}"
+            bashio::log.warning "Disabling SSL and continuing without encryption"
+            ssl_enabled="false"
+            export PERIPHERY_SSL_ENABLED="false"
+        else
+            bashio::log.info "SSL certificates verified at ${SSL_KOMODO_DIR}"
+        fi
     fi
 fi
+
+# Update config file if SSL was disabled during certificate generation
+# This ensures the config matches the actual SSL state
+sed -i "s/ssl_enabled = true/ssl_enabled = ${ssl_enabled}/" /etc/komodo/periphery.config.toml
 
 bashio::log.info "Komodo Periphery configuration prepared"
 bashio::log.info "Stack directory: ${stack_directory}"

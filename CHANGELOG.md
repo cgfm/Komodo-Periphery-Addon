@@ -5,6 +5,18 @@ All notable changes to this Home Assistant Add-on will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-07
+
+### Changed
+- Updated Docker CLI installation to use official Docker repository for better API compatibility
+- S6-overlay now automatically fetches the latest version at build time
+- Bashio now automatically fetches the latest version at build time
+
+### Fixed
+- Fixed IPv4/IPv6 handling for SSL certificate generation
+- Improved SSL certificate handling with persistent storage across add-on restarts
+- Enhanced SSL error handling with graceful fallback to non-SSL mode
+
 ## [2.0.0] - 2025-11-22
 
 ### Changed
