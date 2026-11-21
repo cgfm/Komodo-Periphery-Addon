@@ -1,7 +1,16 @@
 # Home Assistant Add-on: Komodo Periphery
 
+> [!WARNING]
+> **Deprecated and no longer maintained.** Support and updates for this add-on have ended. Komodo v2 support is not planned.
+
+## Migrating to Komodo v2
+
+Komodo v2 uses versioned image tags such as `:2`. This add-on builds from `:latest`, which does not receive Komodo v2 releases. The add-on’s `2.x` version is separate from the upstream Komodo version.
+
+- Follow the [official Komodo v2 upgrade guide](https://komo.do/docs/releases/v2.0.0#upgrading-to-komodo-v2) to upgrade Core and Periphery.
+- For Home Assistant, @dafik shared a [community Periphery add-on for Komodo v2](https://github.com/dafik/Hassio-Addons/tree/main/komodo-periphery) in [issue #3](https://github.com/cgfm/Komodo-Periphery-Addon/issues/3). It is a separate, independently maintained add-on. Follow its onboarding and configuration instructions.
+
 [![GitHub Release][releases-shield]][releases]
-[![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 
 ![Supports amd64 Architecture][amd64-shield]
@@ -14,8 +23,6 @@ _Komodo Periphery Server - Manages containers on remote servers_
 
 This Home Assistant Add-on provides the Komodo Periphery server, which allows you to manage Docker containers on remote servers through the Komodo platform. The Periphery server acts as an agent that connects to a Komodo Core server and executes container management tasks.
 
-**Note:** This add-on automatically uses the latest stable version of Komodo Periphery from the official upstream repository. The add-on version number (2.x) is independent of the underlying Komodo Periphery version to provide clear versioning for the Home Assistant integration.
-
 ## Features
 
 - 🐳 **Docker Container Management**: Full Docker container lifecycle management
@@ -27,7 +34,7 @@ This Home Assistant Add-on provides the Komodo Periphery server, which allows yo
 - 🌐 **SSL Support**: Optional SSL/TLS encryption
 - 📋 **Repository Management**: Git repository integration
 
-## Installation
+## Legacy installation
 
 ### Quick Installation
 
@@ -156,22 +163,6 @@ Disable container exec functionality.
 - SSL certificates must be manually configured if SSL is enabled
 - Some container statistics require privileged access
 
-## Support
-
-Got questions?
-
-You could [open an issue here][issue] GitHub.
-
-## Contributing
-
-This is an active open-source project. We are always open to people who want to
-use the code or contribute to it.
-
-We have set up a separate document containing our
-[contribution guidelines](.github/CONTRIBUTING.md).
-
-Thank you for being involved! :heart_eyes:
-
 ## License
 
 MIT License
@@ -198,11 +189,6 @@ SOFTWARE.
 
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [banner-image]: https://raw.githubusercontent.com/cgfm/Komodo-Periphery-Addon/refs/heads/main/images/banner.png
-[commits-shield]: https://img.shields.io/github/commit-activity/y/cgfm/Komodo-Periphery-Addon.svg
-[commits]: https://github.com/cgfm/Komodo-Periphery-Addon/commits/main
-[contributors]: https://github.com/cgfm/Komodo-Periphery-Addon/graphs/contributors
-[author]: https://github.com/cgfm
-[issue]: https://github.com/cgfm/Komodo-Periphery-Addon/issues
 [license-shield]: https://img.shields.io/github/license/cgfm/Komodo-Periphery-Addon.svg
 [releases-shield]: https://img.shields.io/github/release/cgfm/Komodo-Periphery-Addon.svg
 [releases]: https://github.com/cgfm/Komodo-Periphery-Addon/releases
